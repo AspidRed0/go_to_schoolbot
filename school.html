@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Домашний бот — Домашнее задание для учеников</title>
+    <!-- Font Awesome 6 для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e9f0fc 0%, #d4e2f5 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* главный контейнер - стиль мессенджера */
+        .chat-container {
+            max-width: 900px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 40px;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        /* шапка чат-бота */
+        .chat-header {
+            background: linear-gradient(115deg, #1e3c72, #2a5298);
+            padding: 22px 24px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .bot-avatar {
+            background: #ffb347;
+            width: 52px;
+            height: 52px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .bot-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .bot-title p {
+            font-size: 0.8rem;
+            opacity: 0.85;
+        }
+
+        /* область сообщений */
+        .messages-area {
+            background: #f7f9fe;
+            padding: 20px 24px;
+            height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        /* стили сообщений */
+        .message {
+            display: flex;
+            gap: 12px;
+            max-width: 85%;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-icon {
+            width: 36px;
+            height: 36px;
+            background: #e2e8f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .bot-message .message-icon {
+            background: #2a5298;
+            color: white;
+        }
+
+        .user-message .message-icon {
+            background: #1f6e43;
+            color: white;
+        }
+
+        .message-bubble {
+            background: white;
+            padding: 12px 18px;
+            border-radius: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            line-height: 1.45;
+            font-size: 0.95rem;
+        }
+
+        .user-message .message-bubble {
+            background: #d9f0e3;
+            border-radius: 24px 24px 4px 24px;
+        }
+
+        .bot-message .message-bubble {
+            background: white;
+            border-radius: 24px 24px 24px 4px;
+        }
+
+        /* Домашнее задание в красивом блоке */
+        .homework-card {
+            background: #fff9e8;
+            border-left: 5px solid #f4a261;
+            padding: 12px 16px;
+            border-radius: 20px;
+            margin-top: 6px;
+        }
+
+        .homework-subject {
+            font-weight: 800;
+            color: #e76f51;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .homework-text {
+            font-size: 0.95rem;
+            margin-top: 6px;
+        }
+
+        .homework-deadline {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* панель выбора (форма ввода) */
+        .input-panel {
+            background: white;
+            padding: 16px 24px 24px 24px;
+            border-top: 1px solid #e2edf7;
+        }
+
+        .selector-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .selector-group select {
+            flex: 1;
+            min-width: 130px;
+            padding: 12px 14px;
+            border-radius: 60px;
+            border: 1.5px solid #cbdbe0;
+            background: #fefefe;
+            font-size: 0.9rem;
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .selector-group select:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42,82,152,0.2);
+        }
+
+        .ask-btn {
+            background: linear-gradient(95deg, #2a5298, #1e3c72);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 60px;
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .ask-btn:hover {
+            background: linear-gradient(95deg, #1e3c72, #0f2a4a);
+            transform: translateY(-1px);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            background: #eef2fa;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.1s;
+            color: #1e4663;
+        }
+
+        .chip:hover {
+            background: #d9e3f5;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        .typing {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #5f7f9a;
+        }
+
+        .typing span {
+            width: 6px;
+            height: 6px;
+            background: #8aa0b5;
+            border-radius: 50%;
+            display: inline-block;
+            animation: blink 1.4s infinite;
+        }
+
+        .typing span:nth-child(2) { animation-delay: 0.2s; }
+        .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes blink {
+            0%, 60%, 100% { opacity: 0.3; transform: translateY(0);}
+            30% { opacity: 1; transform: translateY(-3px);}
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #7c93b0;
+            background: #f7f9fe;
+            padding: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <div class="bot-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="bot-title">
+            <h2><i class="fas fa-book-open"></i> Домашний бот</h2>
+            <p>📚 Узнай домашнее задание по школе, классу и предмету</p>
+        </div>
+    </div>
+
+    <div class="messages-area" id="messagesArea">
+        <!-- Приветственное сообщение -->
+        <div class="message bot-message">
+            <div class="message-icon"><i class="fas fa-graduation-cap"></i></div>
+            <div class="message-bubble">
+                🧑‍🏫 Привет! Я бот-помощник. Выбери школу, класс и предмет — и я покажу домашнее задание на сегодня.<br>
+                <span style="font-size: 0.8rem; opacity: 0.7;">⬇️ Настройки ниже ⬇️</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-panel">
+        <div class="selector-group">
+            <select id="schoolSelect">
+                <option value="">🏫 Школа</option>
+            </select>
+            <select id="classSelect">
+                <option value="">📖 Класс</option>
+            </select>
+            <select id="subjectSelect">
+                <option value="">📚 Предмет</option>
+            </select>
+        </div>
+        <button id="askHomeworkBtn" class="ask-btn">
+            <i class="fas fa-paper-plane"></i> Показать домашнее задание
+        </button>
+        <div class="quick-actions">
+            <div class="chip" data-subj="Математика">📐 Математика</div>
+            <div class="chip" data-subj="Русский язык">✍️ Русский язык</div>
+            <div class="chip" data-subj="Литература">📖 Литература</div>
+            <div class="chip" data-subj="Физика">⚡ Физика</div>
+            <div class="chip" data-subj="История">🏛️ История</div>
+            <div class="chip" data-subj="Биология">🔬 Биология</div>
+        </div>
+    </div>
+    <div class="footer-note">
+        <i class="fas fa-database"></i> Актуальные задания от учителей. Выберите параметры и нажмите кнопку.
+    </div>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    //  БАЗА ДАННЫХ ДОМАШНИХ ЗАДАНИЙ (школа, класс, предмет -> задание)
+    //  Создаём правдоподобные задания для разных школ, классов, предметов
+    // --------------------------------------------------------------
+    
+    // Список школ (реальные названия)
+    const SCHOOLS = [
+        "Гимназия №1 им. Ломоносова",
+        "Школа №7 с углублённым английским",
+        "Лицей «Классика»",
+        "Северная школа №11",
+        "Академический лицей Северный",
+        "Южный образовательный центр",
+        "Школа №9 с технопарком",
+        "Гимназия «Гармония»",
+        "Западная школа им. Гагарина",
+        "IT-лицей Западный",
+        "Восточная школа №21",
+        "Лицей «Восток-Интеллект»",
+        "Школа креативных индустрий"
+    ];
+    
+    // Классы от 1 до 11
+    const CLASSES = [];
+    for (let i = 1; i <= 11; i++) {
+        CLASSES.push(`${i}А`, `${i}Б`);
+        if (i >= 5) CLASSES.push(`${i}В`);
+        if (i >= 8) CLASSES.push(`${i}Г`);
+    }
+    // уникальные классы (без дублей)
+    const UNIQUE_CLASSES = [...new Set(CLASSES)].sort();
+    
+    // Предметы
+    const SUBJECTS = [
+        "Математика", "Русский язык", "Литература", "Физика", "Химия", 
+        "Биология", "История", "Обществознание", "География", "Английский язык", 
+        "Информатика", "Физическая культура", "ИЗО", "Музыка", "Технология"
+    ];
+    
+    // Банк заданий для генерации правдоподобных ДЗ
+    const HOMEWORK_VARIANTS = {
+        "Математика": [
+            "Решить №345-352 (стр. 78), подготовиться к контрольной работе по теме «Уравнения»",
+            "Выполнить задания на листочках: №1-5 на проценты, повторить формулы сокращённого умножения",
+            "Задача на дом: №456, 458; дополнительно №460* (по желанию)",
+            "Решить тест в рабочей тетради (стр. 45-48), принести на проверку",
+            "Параграф 23, выучить определения, решить №678, 679",
+            "Подготовить доклад о великих математиках (на 3-5 минут)",
+            "Повторить тему «Дроби»: №230, 232, 234; сделать схему",
+            "Онлайн-тренажер по ссылке в дневнике, прислать скрин результата"
+        ],
+        "Русский язык": [
+            "Упражнение 127 (списать, вставить орфограммы). Выучить правила на стр. 56-57",
+            "Написать сочинение-рассуждение на тему «Что значит быть ответственным?» (объем 1-1.5 стр)",
+            "Подготовиться к словарному диктанту (слова из раздела «Лексика»)",
+            "Повторить падежи и склонения: упр. 230, 231. Выполнить морфологический разбор 3 слов",
+            "Написать изложение по тексту упр. 89, выделить микротемы",
+            "Разобрать по составу 10 слов из упражнения 112, составить с ними предложения",
+            "Подготовить устное сообщение «Фразеологизмы в речи»"
+        ],
+        "Литература": [
+            "Прочитать главы 4-6 романа «Дубровский». Составить план событий",
+            "Выучить стихотворение Пушкина (на выбор: «Зимнее утро» или «Няне»)",
+            "Написать отзыв о прочитанном рассказе (по выбору), объем 10-12 предложений",
+            "Ответить на вопросы после параграфа (стр. 112-115) письменно",
+            "Подготовить выразительное чтение отрывка из «Мертвых душ»",
+            "Сравнительная характеристика двух героев (таблица + вывод)"
+        ],
+        "Физика": [
+            "Решить задачи № 7.2, 7.5, 7.9 из сборника. Повторить параграф 18",
+            "Подготовить лабораторную работу №3 (измерение плотности) – заполнить таблицу",
+            "Составить конспект параграфа «Давление твердых тел» (пункты 1-4)",
+            "Решить тест на стр. 89 (вариант 1), ответы записать в тетрадь",
+            "Доклад «Интересные факты о силе трения» (3-5 мин)",
+            "Задача на расчет давления: стр. 92 № 2,3,6"
+        ],
+        "Биология": [
+            "Параграф 24, ответить на вопросы устно, заполнить таблицу «Строение клетки»",
+            "Подготовить сообщение о многообразии растений (на выбор – цветок, дерево)",
+            "Нарисовать схему пищевой цепи (5 организмов) и подписать",
+            "Выполнить лабораторную работу «Строение семени фасоли» (оформить вывод)",
+            "Изучить тему «Грибы»: сделать кроссворд из 10 слов",
+            "Заполнить рабочую тетрадь стр. 34-37"
+        ],
+        "История": [
+            "Прочитать параграф 14-15, составить хронологическую таблицу событий",
+            "Подготовить проект «Культура Древней Руси» (на листе А4 или презентация)",
+            "Ответить на вопросы после параграфа (письменно 1-5)",
+            "Нанести на контурную карту походы князя Святослава",
+            "Написать эссе «Роль крещения Руси» (5-7 предложений)",
+            "Выучить даты: 862, 988, 1147"
+        ],
+        "Английский язык": [
+            "Упражнение 8,9 стр. 67 (письменно). Выучить новые слова (module 4)",
+            "Подготовить диалог на тему «Мой день» (10-12 реплик)",
+            "Написать рассказ о своей семье (10 предложений, используя Present Simple)",
+            "Перевести текст «The British Way of Life» и ответить на вопросы",
+            "Повторить грамматику: Present Continuous — сделать 5 предложений",
+            "Аудирование: прослушать трек №23 и выполнить задания в тетради"
+        ],
+        "Химия": [
+            "Выучить таблицу растворимости (основные ионы), решить задачи на стр. 67 №3-5",
+            "Написать уравнения реакций (по вариантам) из упражнения 7",
+            "Подготовить сообщение «Применение кислорода» (кратко)",
+            "Решить цепочку превращений: S → SO2 → SO3 → H2SO4",
+            "Параграф 28, ответить на вопросы 1-4 письменно"
+        ],
+        "Информатика": [
+            "Составить алгоритм для исполнителя Робот (задание в эл. дневнике)",
+            "Выполнить задание в Google-таблице: построить график функции",
+            "Написать программу на Python (вычисление площади треугольника)",
+            "Создать презентацию на тему «Устройство компьютера» (5 слайдов)",
+            "Решить логическую задачу: таблица истинности (вариант 3)"
+        ],
+        "default": [
+            "📌 Повторить пройденный материал, подготовиться к опросу",
+            "📖 Выполнить упражнения из рабочей тетради (номера на доске)",
+            "✍️ Доделать классную работу дома, принести завтра",
+            "📚 Читать § следующий, ответить на вопросы в конце параграфа"
+        ]
+    };
+    
+    // Функция получения домашнего задания в зависимости от школы, класса и предмета
+    function getHomework(schoolName, className, subject) {
+        // Генерируем детерминированное, но разное для каждой комбинации (но стабильное)
+        // Используем хеш от строк, чтобы для одинаковых параметров выдавать одинаковое задание.
+        const key = `${schoolName}|${className}|${subject}`;
+        let hash = 0;
+        for (let i = 0; i < key.length; i++) {
+            hash = ((hash << 5) - hash) + key.charCodeAt(i);
+            hash |= 0;
+        }
+        const absHash = Math.abs(hash);
+        
+        // выбираем банк заданий для предмета, если есть, иначе default
+        let tasksBank = HOMEWORK_VARIANTS[subject] || HOMEWORK_VARIANTS.default;
+        const index = absHash % tasksBank.length;
+        let homeworkText = tasksBank[index];
+        
+        // Иногда добавляем специфику класса (старшие классы усложняем)
+        const classNumber = parseInt(className);
+        if (!isNaN(classNumber) && classNumber >= 9 && (subject === "Математика" || subject === "Физика")) {
+            homeworkText += " + дополнительное задание повышенной сложности (на «5»).";
+        }
+        if (subject === "Литература" && classNumber >= 10) {
+            homeworkText = "Анализ главы из романа «Обломов». Составить цитатный план. " + homeworkText;
+        }
+        
+        // добавим дедлайн (завтра или через день)
+        const deadlineDate = new Date();
+        deadlineDate.setDate(deadlineDate.getDate() + 1);
+        const deadlineStr = deadlineDate.toLocaleDateString('ru-RU', {day:'numeric', month:'long'});
+        
+        return {
+            text: homeworkText,
+            deadline: `📅 Сдать до ${deadlineStr}`,
+            subject: subject
+        };
+    }
+    
+    // DOM-элементы
+    const schoolSelect = document.getElementById('schoolSelect');
+    const classSelect = document.getElementById('classSelect');
+    const subjectSelect = document.getElementById('subjectSelect');
+    const askBtn = document.getElementById('askHomeworkBtn');
+    const messagesArea = document.getElementById('messagesArea');
+    
+    // Заполняем школы
+    function populateSchools() {
+        SCHOOLS.forEach(school => {
+            const option = document.createElement('option');
+            option.value = school;
+            option.textContent = school;
+            schoolSelect.appendChild(option);
+        });
+    }
+    
+    // Заполняем классы
+    function populateClasses() {
+        classSelect.innerHTML = '<option value="">📖 Класс</option>';
+        UNIQUE_CLASSES.forEach(className => {
+            const option = document.createElement('option');
+            option.value = className;
+            option.textContent = className;
+            classSelect.appendChild(option);
+        });
+    }
+    
+    // Заполняем предметы
+    function populateSubjects() {
+        subjectSelect.innerHTML = '<option value="">📚 Предмет</option>';
+        SUBJECTS.forEach(subj => {
+            const option = document.createElement('option');
+            option.value = subj;
+            option.textContent = subj;
+            subjectSelect.appendChild(option);
+        });
+    }
+    
+    // Добавить сообщение в чат (бот или пользователь)
+    function addMessage(text, isUser = false, homeworkData = null) {
+        const messagesDiv = messagesArea;
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+        
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'message-icon';
+        if (isUser) {
+            iconDiv.innerHTML = '<i class="fas fa-user-graduate"></i>';
+        } else {
+            iconDiv.innerHTML = '<i class="fas fa-robot"></i>';
+        }
+        
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = 'message-bubble';
+        
+        if (!isUser && homeworkData) {
+            // красивое отображение домашнего задания
+            bubbleDiv.innerHTML = `
+                <div class="homework-card">
+                    <div class="homework-subject">
+                        <i class="fas fa-pencil-alt"></i> ${homeworkData.subject}
+                    </div>
+                    <div class="homework-text">
+                        📌 <strong>Домашнее задание:</strong><br> ${homeworkData.text}
+                    </div>
+                    <div class="homework-deadline">
+                        <i class="far fa-calendar-alt"></i> ${homeworkData.deadline}
+                    </div>
+                </div>
+                <div style="margin-top: 8px; font-size:0.75rem; opacity:0.6;">
+                    🧑‍🏫 Удачи в выполнении!
+                </div>
+            `;
+        } else {
+            bubbleDiv.innerHTML = text;
+        }
+        
+        messageDiv.appendChild(iconDiv);
+        messageDiv.appendChild(bubbleDiv);
+        messagesDiv.appendChild(messageDiv);
+        
+        // скролл вниз
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+    
+    // Эффект "печатания" бота (имитация задержки)
+    function showBotTyping(callback) {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot-message';
+        typingDiv.id = 'typingIndicator';
+        typingDiv.innerHTML = `
+            <div class="message-icon"><i class="fas fa-robot"></i></div>
+            <div class="message-bubble">
+                <div class="typing">Бот думает<span>.</span><span>.</span><span>.</span></div>
+            </div>
+        `;
+        messagesArea.appendChild(typingDiv);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+        setTimeout(() => {
+            const typingElem = document.getElementById('typingIndicator');
+            if (typingElem) typingElem.remove();
+            if (callback) callback();
+        }, 600);
+    }
+    
+    // Основная логика: запрос домашнего задания
+    function requestHomework() {
+        const school = schoolSelect.value;
+        const className = classSelect.value;
+        const subject = subjectSelect.value;
+        
+        if (!school || !className || !subject) {
+            addMessage("⚠️ Пожалуйста, выбери **школу**, **класс** и **предмет**! (все три поля обязательны)", false);
+            return;
+        }
+        
+        // сообщение пользователя (что выбрал)
+        const userText = `Школа: ${school} | Класс: ${className} | Предмет: ${subject}`;
+        addMessage(userText, true);
+        
+        showBotTyping(() => {
+            const homework = getHomework(school, className, subject);
+            addMessage("", false, homework);
+        });
+    }
+    
+    // Быстрый выбор предмета через чипсы
+    function setupChips() {
+        const chips = document.querySelectorAll('.chip');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                const subj = chip.getAttribute('data-subj');
+                if (subj) {
+                    const subjectDropdown = subjectSelect;
+                    for (let i = 0; i < subjectDropdown.options.length; i++) {
+                        if (subjectDropdown.options[i].value === subj) {
+                            subjectDropdown.selectedIndex = i;
+                            break;
+                        }
+                    }
+                    // дополнительно подсветим, что выбран предмет
+                    addMessage(`✅ Выбран предмет: ${subj} (можно нажать кнопку)`, false);
+                }
+            });
+        });
+    }
+    
+    // Инициализация интерфейса
+    function init() {
+        populateSchools();
+        populateClasses();
+        populateSubjects();
+        setupChips();
+        askBtn.addEventListener('click', requestHomework);
+        
+        // добавим подсказку-сообщение
+        setTimeout(() => {
+            addMessage("💡 Попробуй выбрать школу, класс и предмет, затем нажми «Показать домашнее задание». Или кликни на любой предмет (чип) для быстрого выбора.", false);
+        }, 800);
+    }
+    
+    init();
+</script>
+</body>
+</html>
